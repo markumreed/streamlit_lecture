@@ -1,0 +1,204 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Building Interactive Dashboards with Streamlit</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/black.css" id="theme">
+    <style>
+      code { background: #2d2d2d; color: #9efb9e; padding: 2px 4px; border-radius: 4px; }
+      pre code { display: block; padding: 12px; }
+    </style>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+
+        <section>
+          <h1>Building Interactive Dashboards with Streamlit</h1>
+          <p><em>Hands-on Workshop — 1.5 hours</em></p>
+        </section>
+
+        <section>
+          <h2>Learning Goals</h2>
+          <ul>
+            <li>Run Streamlit apps locally</li>
+            <li>Use widgets for interactivity</li>
+            <li>Display tables and charts</li>
+            <li>Upload and filter CSV data</li>
+            <li>Organize apps with sidebar &amp; layouts</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>What is Streamlit?</h2>
+          <ul>
+            <li>Python library for turning scripts into apps</li>
+            <li>No front-end coding required</li>
+            <li>Great for dashboards &amp; prototypes</li>
+          </ul>
+          <p><strong>Use cases:</strong> business dashboards, internal tools, quick prototypes</p>
+        </section>
+
+        <section>
+          <h2>Demo: Hello Streamlit</h2>
+          <pre><code class="bash">
+pip install streamlit
+streamlit hello
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Your First App</h2>
+          <pre><code class="python">
+import streamlit as st
+
+st.title("My First Streamlit App")
+st.write("Hello, world! This is a simple interactive web app.")
+          </code></pre>
+          <p>Run with:</p>
+          <pre><code class="bash">streamlit run app.py</code></pre>
+        </section>
+
+        <section>
+          <h2>Widgets &amp; Interactivity</h2>
+          <ul>
+            <li><code>st.button("Click me")</code></li>
+            <li><code>st.text_input("Enter your name")</code></li>
+            <li><code>st.slider("Pick a number", 0, 100)</code></li>
+            <li><code>st.selectbox("Choose option", [...])</code></li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Example: Widgets</h2>
+          <pre><code class="python">
+st.title("Interactive Widgets")
+
+name = st.text_input("Enter your name:")
+age = st.slider("Select your age", 0, 100, 25)
+
+if st.button("Submit"):
+    st.write(f"Hello {name}, you are {age} years old!")
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Activity</h2>
+          <p>👉 Add another widget!</p>
+          <ul>
+            <li>Example: dropdown for favorite color</li>
+            <li>Display the chosen color with <code>st.write()</code></li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Displaying Data</h2>
+          <pre><code class="python">
+import pandas as pd
+import numpy as np
+
+st.header("Displaying Data")
+
+df = pd.DataFrame({
+    "Products": ["A", "B", "C"],
+    "Sales": [100, 200, 150]
+})
+st.table(df)
+
+chart_data = pd.DataFrame(
+    np.random.randn(20, 3),
+    columns=["Product A", "Product B", "Product C"]
+)
+st.line_chart(chart_data)
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Activity</h2>
+          <p>👉 Try it out:</p>
+          <ul>
+            <li>Create your own table</li>
+            <li>Experiment with <code>st.bar_chart()</code></li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>File Upload</h2>
+          <pre><code class="python">
+uploaded = st.file_uploader("Upload a CSV file", type=["csv"])
+if uploaded:
+    data = pd.read_csv(uploaded)
+    st.write("Preview of Data", data.head())
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Filtering Example</h2>
+          <pre><code class="python">
+column = st.selectbox("Choose a column", data.columns)
+st.write(data[column])
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Layouts &amp; Organization</h2>
+          <ul>
+            <li><strong>Sidebar:</strong> <code>st.sidebar.widget()</code></li>
+            <li><strong>Columns:</strong> <code>col1, col2 = st.columns(2)</code></li>
+            <li><strong>Tabs:</strong> <code>tab1, tab2 = st.tabs([...])</code></li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Example: Sidebar &amp; Columns</h2>
+          <pre><code class="python">
+st.sidebar.header("Sidebar Filters")
+option = st.sidebar.selectbox("Choose an option", ["Overview", "Details"])
+
+col1, col2 = st.columns(2)
+col1.metric("Sales", "200K")
+col2.metric("Profit", "50K")
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Activity</h2>
+          <p>👉 Move one of your earlier widgets into the sidebar</p>
+        </section>
+
+        <section>
+          <h2>Wrap-Up</h2>
+          <p>You now know how to:</p>
+          <ul>
+            <li>Run Streamlit apps locally</li>
+            <li>Use widgets for interactivity</li>
+            <li>Display tables and charts</li>
+            <li>Upload &amp; filter CSVs</li>
+            <li>Organize apps with sidebar &amp; layouts</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Next Steps</h2>
+          <ul>
+            <li>Explore docs: <a href="https://docs.streamlit.io">docs.streamlit.io</a></li>
+            <li>Deploy with Streamlit Community Cloud</li>
+            <li>Try advanced features (maps, Plotly, caching)</li>
+          </ul>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        slideNumber: true,
+        plugins: []
+      });
+    </script>
+  </body>
+</html>
