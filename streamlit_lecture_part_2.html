@@ -1,0 +1,303 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Streamlit Lecture Part 2 — Building Interactive Dashboards</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/black.css" id="theme">
+    <style>
+      code { background: #2d2d2d; color: #a0f0a0; padding: 2px 4px; border-radius: 4px; }
+      pre code { display: block; padding: 12px; }
+      h1, h2, h3 { color: #80ff80; }
+      .reveal section img { border-radius: 12px; }
+    </style>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+
+        <!-- TITLE -->
+        <section>
+          <h1>Streamlit Lecture Part 2</h1>
+          <h3>Building Interactive Dashboards</h3>
+          <p><em>Hands-On Session</em></p>
+        </section>
+
+        <!-- OBJECTIVES -->
+        <section>
+          <h2>Learning Objectives</h2>
+          <ul>
+            <li>Create dashboards with organized layouts (columns, tabs, sidebars)</li>
+            <li>Add dynamic interactivity using filters</li>
+            <li>Compute and display KPIs that summarize performance</li>
+            <li>Build interactive charts with Streamlit’s tools</li>
+            <li>Enable CSV downloads for filtered data</li>
+          </ul>
+        </section>
+
+        <!-- REVIEW -->
+        <section>
+          <h2>Review from Part 1</h2>
+          <ul>
+            <li>Used <code>st.title()</code>, <code>st.write()</code>, and basic widgets</li>
+            <li>Displayed tables and charts</li>
+            <li>Uploaded and previewed CSV files</li>
+          </ul>
+          <p>Now we’ll build a complete interactive business dashboard using <strong>orders_large.csv</strong>.</p>
+        </section>
+
+        <!-- LAYOUTS -->
+        <section>
+          <h2>Layouts with Columns and Tabs</h2>
+          <pre><code class="python">
+import streamlit as st
+
+st.title("Layout Example")
+
+col1, col2, col3 = st.columns(3)
+col1.metric("Total Sales", "$120K")
+col2.metric("Profit", "$45K")
+col3.metric("Orders", "1,200")
+
+tab1, tab2 = st.tabs(["Summary", "Details"])
+tab1.write("Overview of key results.")
+tab2.write("Detailed data breakdown here.")
+          </code></pre>
+        </section>
+
+        <section>
+          <h3>Discussion</h3>
+          <ul>
+            <li><strong>Columns:</strong> display KPIs side-by-side for readability</li>
+            <li><strong>Tabs:</strong> separate summaries and detailed views</li>
+            <li><strong>Best Practice:</strong> 3–4 KPIs per row keeps dashboards balanced</li>
+          </ul>
+        </section>
+
+        <!-- SIDEBAR FILTERS -->
+        <section>
+          <h2>Adding Sidebar Filters</h2>
+          <pre><code class="python">
+import pandas as pd
+import streamlit as st
+
+df = pd.read_csv("orders_large.csv")
+df["date"] = pd.to_datetime(df["date"])
+df["revenue"] = df["units"] * df["unit_price"]
+
+st.title("Interactive Sales Dashboard")
+
+regions = ["All"] + sorted(df["region"].unique().tolist())
+products = ["All"] + sorted(df["product"].unique().tolist())
+
+st.sidebar.header("Filters")
+region = st.sidebar.selectbox("Select Region", regions)
+product = st.sidebar.selectbox("Select Product", products)
+date_range = st.sidebar.date_input("Date Range", (df["date"].min(), df["date"].max()))
+
+filtered = df.copy()
+if region != "All":
+    filtered = filtered[filtered["region"] == region]
+if product != "All":
+    filtered = filtered[filtered["product"] == product]
+filtered = filtered[filtered["date"].between(pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1]))]
+          </code></pre>
+        </section>
+
+        <section>
+          <h3>Discussion</h3>
+          <ul>
+            <li>Sidebars provide a clean space for filters and user inputs.</li>
+            <li>Layer filters step by step: region → product → date.</li>
+            <li>Using “All” ensures default results appear before filtering.</li>
+          </ul>
+        </section>
+
+        <!-- KPIs -->
+        <section>
+          <h2>Calculating KPIs</h2>
+          <pre><code class="python">
+total_revenue = filtered["revenue"].sum()
+total_units = int(filtered["units"].sum())
+orders = len(filtered)
+avg_order_value = total_revenue / orders
+
+c1, c2, c3 = st.columns(3)
+c1.metric("Total Revenue", f"${total_revenue:,.2f}")
+c2.metric("Units Sold", f"{total_units:,}")
+c3.metric("Avg Order Value", f"${avg_order_value:,.2f}")
+          </code></pre>
+        </section>
+
+        <section>
+          <h3>Discussion</h3>
+          <ul>
+            <li>KPIs summarize overall business performance.</li>
+            <li>Examples: <em>Total Revenue, Units Sold, Average Order Value</em>.</li>
+            <li>Formatted metrics improve clarity and professionalism.</li>
+          </ul>
+        </section>
+
+        <!-- VISUALS -->
+        <section>
+          <h2>Visualizing Revenue and Products</h2>
+          <pre><code class="python">
+by_day = (
+    filtered.groupby("date", as_index=False)["revenue"]
+    .sum()
+    .sort_values("date")
+)
+st.line_chart(by_day, x="date", y="revenue")
+
+by_product = (
+    filtered.groupby("product", as_index=False)["revenue"]
+    .sum()
+    .sort_values("revenue", ascending=False)
+    .head(5)
+)
+st.bar_chart(by_product, x="product", y="revenue")
+          </code></pre>
+        </section>
+
+        <section>
+          <h3>Discussion</h3>
+          <ul>
+            <li>Group by <code>date</code> or <code>product</code> to summarize trends.</li>
+            <li>Line charts show time-based changes; bar charts show category comparisons.</li>
+            <li>Always sort data for clear chart ordering.</li>
+          </ul>
+        </section>
+
+        <!-- DOWNLOAD -->
+        <section>
+          <h2>Adding Download Functionality</h2>
+          <pre><code class="python">
+st.download_button(
+    label="Download Filtered Data",
+    data=filtered.to_csv(index=False).encode("utf-8"),
+    file_name="filtered_orders.csv",
+    mime="text/csv"
+)
+st.caption("Click above to save your filtered data as a CSV file.")
+          </code></pre>
+        </section>
+
+        <section>
+          <h3>Discussion</h3>
+          <ul>
+            <li>Downloads let users continue analysis outside Streamlit.</li>
+            <li><code>encode("utf-8")</code> ensures compatibility on all platforms.</li>
+            <li>Add timestamps to filenames for version control.</li>
+          </ul>
+        </section>
+
+        <!-- HOMEWORK -->
+        <section>
+          <h2>Homework: Extend Your Dashboard</h2>
+          <ul>
+            <li>Add new KPIs (Profit Margin, Avg Units per Order)</li>
+            <li>Create a Monthly Revenue Chart</li>
+            <li>Apply a Custom Page Configuration</li>
+          </ul>
+        </section>
+
+        <!-- HW KPI -->
+        <section>
+          <h2>Task 1: Add Two New KPIs</h2>
+          <pre><code class="python">
+# Profit Margin (%)
+profit = filtered["revenue"].sum() * 0.7
+profit_margin = (profit / filtered["revenue"].sum()) * 100
+st.metric("Profit Margin", f"{profit_margin:.1f}%")
+
+# Average Units per Order
+avg_units = filtered["units"].mean()
+st.metric("Avg Units per Order", f"{avg_units:.2f}")
+          </code></pre>
+        </section>
+
+        <section>
+          <h3>Discussion</h3>
+          <ul>
+            <li>Profit margin shows efficiency — how much revenue becomes profit.</li>
+            <li>Average units per order reveals customer behavior.</li>
+            <li>Keep KPIs concise and properly formatted for readability.</li>
+          </ul>
+        </section>
+
+        <!-- HW CHART -->
+        <section>
+          <h2>Task 2: Add a Monthly Revenue Chart</h2>
+          <pre><code class="python">
+filtered["month"] = filtered["date"].dt.to_period("M").astype(str)
+by_month = (
+    filtered.groupby("month", as_index=False)["revenue"]
+    .sum()
+    .sort_values("month")
+)
+st.line_chart(by_month, x="month", y="revenue")
+          </code></pre>
+        </section>
+
+        <section>
+          <h3>Discussion</h3>
+          <ul>
+            <li>Monthly grouping reveals trends and seasonality.</li>
+            <li><code>to_period("M")</code> converts dates into month labels.</li>
+            <li>Try <code>st.area_chart()</code> for cumulative visuals.</li>
+          </ul>
+        </section>
+
+        <!-- HW CONFIG -->
+        <section>
+          <h2>Task 3: Apply a Custom Page Configuration</h2>
+          <pre><code class="python">
+st.set_page_config(
+    page_title="BAIS Sales Dashboard",
+    page_icon="💼",
+    layout="wide"
+)
+          </code></pre>
+        </section>
+
+        <section>
+          <h3>Discussion</h3>
+          <ul>
+            <li>Branding adds professionalism to your dashboard.</li>
+            <li>Wide layout optimizes space for KPIs and charts.</li>
+            <li>Use emojis to align with your project’s theme.</li>
+          </ul>
+        </section>
+
+        <!-- WRAP-UP -->
+        <section>
+          <h2>Wrap-Up</h2>
+          <ul>
+            <li>Organize dashboards with columns, tabs, and sidebars</li>
+            <li>Filter data dynamically</li>
+            <li>Compute and display clear, formatted KPIs</li>
+            <li>Build charts that update instantly with filters</li>
+            <li>Allow users to download data subsets</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>Class Discussion</h3>
+          <p><em>"If you were building a retail dashboard, which three KPIs would you track first — and why?"</em></p>
+          <p>Encourage answers that link metrics to outcomes such as revenue growth or customer retention.</p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        slideNumber: true,
+        transition: 'fade'
+      });
+    </script>
+  </body>
+</html>

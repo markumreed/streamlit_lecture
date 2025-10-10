@@ -22,8 +22,8 @@ import pandas as pd
 # st.bar_chart(df.set_index("Products"))
 
 # File Uploads
-uploaded = st.file_uploader("Upload a CSV file", type=["csv"])
+# uploaded = st.file_uploader("Upload a CSV file", type=["csv"])
 
-if uploaded:
-    data = pd.read_csv(uploaded)
-    st.write("Preview of Data", data.head())
+# if uploaded:
+#     data = pd.read_csv(uploaded)
+#     st.write("Preview of Data", data.head())
